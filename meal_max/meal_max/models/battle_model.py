@@ -11,8 +11,18 @@ configure_logger(logger)
 
 
 class BattleModel:
+    """
+    A class to manage a a battle between combatants.
+
+    Attributes:
+        combatants (List[Meal]): The list of combatants in the battle.
+
+    """
 
     def __init__(self):
+        """
+        Initializes the BattleModel with an empty list of combatants.
+        """
         self.combatants: List[Meal] = []
 
     def battle(self) -> str:
@@ -69,6 +79,9 @@ class BattleModel:
         return winner.meal
 
     def clear_combatants(self):
+        """
+        Clears all combatants from the list.
+        """
         logger.info("Clearing the combatants list.")
         self.combatants.clear()
 
