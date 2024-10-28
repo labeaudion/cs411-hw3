@@ -86,6 +86,15 @@ class BattleModel:
         self.combatants.clear()
 
     def get_battle_score(self, combatant: Meal) -> float:
+        """
+        Calculates and retrieves battle score of a combatant.
+
+        Args:
+            combatant (Meal): The combatant to retrieve and calculate its battle score.
+
+        Raises:
+            ValueError: If the combatant doesn't exist or the score is not calculated.
+        """
         difficulty_modifier = {"HIGH": 1, "MED": 2, "LOW": 3}
 
         # Log the calculation process
@@ -101,6 +110,9 @@ class BattleModel:
         return score
 
     def get_combatants(self) -> List[Meal]:
+        """
+        Returns a list of all combatants.
+        """
         logger.info("Retrieving current list of combatants.")
         return self.combatants
 
