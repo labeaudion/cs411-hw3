@@ -26,6 +26,12 @@ class BattleModel:
         self.combatants: List[Meal] = []
 
     def battle(self) -> str:
+        '''
+        Returns the winning combatant of the battle.
+        
+        Raises:
+            ValueError: If there are less than 2 combatants.
+        '''
         logger.info("Two meals enter, one meal leaves!")
 
         if len(self.combatants) < 2:
@@ -117,6 +123,15 @@ class BattleModel:
         return self.combatants
 
     def prep_combatant(self, combatant_data: Meal):
+        '''
+        Adds a combatant to the combatants list.
+        
+        Args:
+            combatant_data (Meal): The combatant to add to the combatants list.
+
+        Raises:
+            ValueError: If you attempt to add more than 2 combatants to the combatants list.
+        '''
         if len(self.combatants) >= 2:
             logger.error("Attempted to add combatant '%s' but combatants list is full", combatant_data.meal)
             raise ValueError("Combatant list is full, cannot add more combatants.")
