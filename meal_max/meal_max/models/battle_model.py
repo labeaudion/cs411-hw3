@@ -28,6 +28,9 @@ class BattleModel:
     def battle(self) -> str:
         '''
         Returns the winning combatant of the battle.
+
+        Returns:
+            winner.meal (Meal.meal): A Meal data class's name representing the name of the combatant.
         
         Raises:
             ValueError: If there are less than 2 combatants.
@@ -93,13 +96,15 @@ class BattleModel:
 
     def get_battle_score(self, combatant: Meal) -> float:
         """
-        Calculates and retrieves battle score of a combatant.
+        Calculates the battle score of a combatant, based on the following rule:
+        - Multiply the price by the number of letters in the cuisine.
+        - Subtract a difficulty modifier (HIGH = 1, MED = 2, LOW = 3).
 
         Args:
-            combatant (Meal): The combatant to retrieve and calculate its battle score.
+            combatant (Meal): A Meal data class representing the combatant.
 
-        Raises:
-            ValueError: If the combatant doesn't exist or the score is not calculated.
+        Returns:
+            float: The calculated battle score.
         """
         difficulty_modifier = {"HIGH": 1, "MED": 2, "LOW": 3}
 
@@ -127,7 +132,7 @@ class BattleModel:
         Adds a combatant to the combatants list.
         
         Args:
-            combatant_data (Meal): The combatant to add to the combatants list.
+            combatant_data (Meal): A Meal data class representing the combatant to add to the combatants list.
 
         Raises:
             ValueError: If you attempt to add more than 2 combatants to the combatants list.
