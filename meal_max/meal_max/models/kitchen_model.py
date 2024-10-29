@@ -100,6 +100,19 @@ def delete_meal(meal_id: int) -> None:
         raise e
 
 def get_leaderboard(sort_by: str="wins") -> dict[str, Any]:
+    """
+    Creates a leaderboard as a dictionary.
+
+    Args:
+        sort_by (str): The sorting method of the leaderboard (either win_pct or wins)
+
+    Returns:
+        dict[str, Any]: A dictionary that contains the leaderboard of all meals.
+
+    Raises:
+        ValueError: If the inputted sorting method is invalid.
+        sqlite3.Error: For any other database errors.
+    """
     query = """
         SELECT id, meal, cuisine, price, difficulty, battles, wins, (wins * 1.0 / battles) AS win_pct
         FROM meals WHERE deleted = false AND battles > 0
@@ -141,6 +154,19 @@ def get_leaderboard(sort_by: str="wins") -> dict[str, Any]:
         raise e
 
 def get_meal_by_id(meal_id: int) -> Meal:
+    """
+    Retrieves a meal by its meal ID.
+
+    Args:
+        meal_id (int): The ID of the meal to retrieve.
+
+    Returns:
+        Meal: The Meal object with that ID.
+
+    Raises:
+        ValueError: If the meal with that ID does not exist or has been deleted.
+        sqlite3.Error: For any other database errors.
+    """
     try:
         with get_db_connection() as conn:
             cursor = conn.cursor()
@@ -162,6 +188,19 @@ def get_meal_by_id(meal_id: int) -> Meal:
 
 
 def get_meal_by_name(meal_name: str) -> Meal:
+    """
+    Retrieve a song by its name.
+
+    Args:
+        meal_name (str): The name of the meal.
+
+    Returns:
+        Meal: The Meal object with that name.
+
+    Raises: 
+        ValueError: If the meal with that name does not exist or has been deleted.
+        sqlite3.Error: For any other database errors.
+    """
     try:
         with get_db_connection() as conn:
             cursor = conn.cursor()
@@ -183,6 +222,17 @@ def get_meal_by_name(meal_name: str) -> Meal:
 
 
 def update_meal_stats(meal_id: int, result: str) -> None:
+    """
+    Update a meal's stats
+
+    Args:
+        meal_id (int): The ID of the to-be-updated Meal
+        result (str): The result that Meal achieved in battle.
+
+    Raises:
+        ValueError: If the battle result (result) is invalid.
+        sqlite3.Error: For any other database errors.
+    """
     try:
         with get_db_connection() as conn:
             cursor = conn.cursor()
