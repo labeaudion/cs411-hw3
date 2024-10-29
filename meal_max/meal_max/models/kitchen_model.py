@@ -27,6 +27,20 @@ class Meal:
 
 
 def create_meal(meal: str, cuisine: str, price: float, difficulty: str) -> None:
+    """
+    Creates a new meal.
+
+    Args:
+        meal (str): The meal's name.
+        cuisine (str): The cuisine of the meal.
+        price (float): The price of the meal.
+        difficulty (str): The difficulty of the meal.
+
+    Raises:
+        ValueError: If price is not a positive number or difficulty is invalid.
+        sqlite3.IntegrityError: If a meal with the same compound key (meal) already exists.
+        sqlite3.Error: For any other database errors.
+    """
     if not isinstance(price, (int, float)) or price <= 0:
         raise ValueError(f"Invalid price: {price}. Price must be a positive number.")
     if difficulty not in ['LOW', 'MED', 'HIGH']:
@@ -53,6 +67,16 @@ def create_meal(meal: str, cuisine: str, price: float, difficulty: str) -> None:
 
 
 def delete_meal(meal_id: int) -> None:
+    """
+    Deletes a meal.
+
+    Args:
+        meal_id (int): The ID of the meal to delete.
+
+    Raises:
+        ValueError: If the meal with the given ID is already marked as deleted or does not exist.
+        sqlite3.Error: For any other database errors.
+    """
     try:
         with get_db_connection() as conn:
             cursor = conn.cursor()
