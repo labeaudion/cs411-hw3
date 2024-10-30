@@ -12,7 +12,7 @@ configure_logger(logger)
 
 class BattleModel:
     """
-    A class to manage a a battle between combatants.
+    A class to manage a battle between combatants.
 
     Attributes:
         combatants (List[Meal]): The list of combatants in the battle.
