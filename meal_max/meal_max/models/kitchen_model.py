@@ -189,7 +189,7 @@ def get_meal_by_id(meal_id: int) -> Meal:
 
 def get_meal_by_name(meal_name: str) -> Meal:
     """
-    Retrieve a song by its name.
+    Retrieve a meal by its name.
 
     Args:
         meal_name (str): The name of the meal.
