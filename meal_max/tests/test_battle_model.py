@@ -17,11 +17,11 @@ def mock_update_meal_stats(mocker):
 """Fixtures providing sample meals for the tests."""
 @pytest.fixture
 def sample_meal1():
-    return Meal(id=1, meal='Meal 1', cuisine='Pork', price='8.50', difficulty='LOW')
+    return Meal(id=1, meal='Meal 1', cuisine='Pork', price=8.50, difficulty='LOW')
 
 @pytest.fixture
 def sample_meal2():
-    return Meal(id=2, meal='Meal 2', cuisine='Beef', price='6.49', difficulty='MED')
+    return Meal(id=2, meal='Meal 2', cuisine='Beef', price=6.49, difficulty='MED')
 
 @pytest.fixture
 def sample_combatants(sample_meal1, sample_meal2):
