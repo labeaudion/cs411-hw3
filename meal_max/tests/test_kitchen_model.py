@@ -1,5 +1,6 @@
 from contextlib import contextmanager
 import re
+import os
 import sqlite3
 
 import pytest
@@ -40,6 +41,7 @@ def mock_cursor(mocker):
     return mock_cursor  # Return the mock cursor so we can set expectations per test
 
 
+
 # test create meal
 def test_create_meal(mock_cursor):
     """Test creating a new meal."""
@@ -64,6 +66,8 @@ def test_create_meal(mock_cursor):
     expected_arguments = ("Meal Name", "Cuisine Name", 8.50, "LOW")
     assert actual_arguments == expected_arguments, f"The SQL query arguments did not match. Expected {expected_arguments}, got {actual_arguments}."
 
+
+
 # test create duplicate meal
 def test_create_meal_duplicate(mock_cursor):
     """Test creating a meal with a duplicate meal name (should raise an error)."""
@@ -74,6 +78,7 @@ def test_create_meal_duplicate(mock_cursor):
     # Expect the function to raise a ValueError with a specific message when handling the IntegrityError
     with pytest.raises(ValueError, match="Meal with name 'Meal Name' already exists"):
         create_meal(meal='Meal Name', cuisine='Cuisine Name', price=8.50, difficulty='LOW')
+
 
 
 # test invalid price, price must be positive
@@ -91,20 +96,133 @@ def test_create_meal_invalid_price():
 
 
 # test invalid difficulty, must be low, med, or high
+def test_create_meal_invalid_difficulty():
+    """Test error when trying to create a meal with an invalid difficulty (not low, med, or high)."""
+
+    # Attempt to create a meal with a difficulty not low, med, or high
+    with pytest.raises(ValueError, match="Invalid difficulty level: 'HI'. Must be 'LOW', 'MED', or 'HIGH'."):
+        create_meal(meal='Meal Name', cuisine='Cuisine Name', price=8.50, difficulty='HI')
+
+
 
 # test clear meals
+def test_clear_meals(mock_cursor, mocker):
+    """Test clearing all meals from the combatants list"""
 
-# test clear meals with database error
+    mocker.patch.dict(os.environ, {"SQL_CREATE_TABLE_PATH": "dummy_path.sql"})
+    mock_create_table_script = "CREATE TABLE meals (id INTEGER PRIMARY KEY, name TEXT);"
+    mocker.patch("builtins.open", mocker.mock_open(read_data=mock_create_table_script))
+    
+    clear_meals()
+
+    mock_cursor.executescript.assert_called_once_with(mock_create_table_script)
+    mock_cursor.connection.commit.assert_called_once()
+
+
 
 # test delete meal
+def test_delete_meal(mock_cursor):
+    """Test soft deleting a meal from the combatants list by meal ID."""
+
+    # Simulate that the song exists (id = 1)
+    mock_cursor.fetchone.return_value = ([False])
+
+    # Call the delete_song function
+    delete_meal(1)
+
+    # Normalize the SQL for both queries (SELECT and UPDATE)
+    expected_select_sql = normalize_whitespace("SELECT deleted FROM meals WHERE id = ?")
+    expected_update_sql = normalize_whitespace("UPDATE meals SET deleted = TRUE WHERE id = ?")
+
+    # Access both calls to `execute()` using `call_args_list`
+    actual_select_sql = normalize_whitespace(mock_cursor.execute.call_args_list[0][0][0])
+    actual_update_sql = normalize_whitespace(mock_cursor.execute.call_args_list[1][0][0])
+
+    # Ensure the correct SQL queries were executed
+    assert actual_select_sql == expected_select_sql, "The SELECT query did not match the expected structure."
+    assert actual_update_sql == expected_update_sql, "The UPDATE query did not match the expected structure."
+
+    # Ensure the correct arguments were used in both SQL queries
+    expected_select_args = (1,)
+    expected_update_args = (1,)
+
+    actual_select_args = mock_cursor.execute.call_args_list[0][0][1]
+    actual_update_args = mock_cursor.execute.call_args_list[1][0][1]
+
+    assert actual_select_args == expected_select_args, f"The SELECT query arguments did not match. Expected {expected_select_args}, got {actual_select_args}."
+    assert actual_update_args == expected_update_args, f"The UPDATE query arguments did not match. Expected {expected_update_args}, got {actual_update_args}."
+
+
 
 # test delete meal with non-existent id
+def test_delete_meal_bad_id(mock_cursor):
+    """Test error when trying to delete a non-existent meal."""
+
+    # Simulate that no meal exists with the given ID
+    mock_cursor.fetchone.return_value = None
+
+    # Expect a ValueError when attempting to delete a non-existent meal
+    with pytest.raises(ValueError, match="Meal with ID 999 not found"):
+        delete_meal(999)
+
+
 
 # test delete meal with meal that's already been deleted
+def test_delete_meal_already_deleted(mock_cursor):
+    """Test error when trying to delete a meal that's already marked as deleted."""
+
+    # Simulate that the meal exists but is already marked as deleted
+    mock_cursor.fetchone.return_value = ([True])
+
+    # Expect a ValueError when attempting to delete a meal that's already been deleted
+    with pytest.raises(ValueError, match="Meal with ID 999 has been deleted"):
+        delete_meal(999)
+
+
 
 # test get leaderboard
+def test_get_leaderboard(mock_cursor):
+    """Testing get_leaderboard, should return the correct leaderboard."""
+
+    # Sample data to return from the mock cursor
+    mock_cursor.fetchall.return_value = [
+        (1, "Spaghetti", "Italian", 10.0, "Easy", 5, 3, 0.6),
+        (2, "Sushi", "Japanese", 15.0, "Medium", 10, 8, 0.8),
+        (3, "Tacos", "Mexican", 8.0, "Easy", 7, 4, 0.5714285714)
+    ]
+
+    # Test sorting by 'wins'
+    leaderboard_wins = get_leaderboard(sort_by="wins")
+
+    expected_wins = [
+        {'id': 2, 'meal': 'Sushi', 'cuisine': 'Japanese', 'price': 15.0, 'difficulty': 'Medium', 'battles': 10, 'wins': 8, 'win_pct': 80.0},
+        {'id': 1, 'meal': 'Spaghetti', 'cuisine': 'Italian', 'price': 10.0, 'difficulty': 'Easy', 'battles': 5, 'wins': 3, 'win_pct': 60.0},
+        {'id': 3, 'meal': 'Tacos', 'cuisine': 'Mexican', 'price': 8.0, 'difficulty': 'Easy', 'battles': 7, 'wins': 4, 'win_pct': 57.1},
+    ]
+    
+    assert leaderboard_wins == expected_wins
+
+    # Test sorting by 'win_pct'
+    leaderboard_win_pct = get_leaderboard(sort_by="win_pct")
+
+    expected_win_pct = [
+        {'id': 2, 'meal': 'Sushi', 'cuisine': 'Japanese', 'price': 15.0, 'difficulty': 'Medium', 'battles': 10, 'wins': 8, 'win_pct': 80.0},
+        {'id': 1, 'meal': 'Spaghetti', 'cuisine': 'Italian', 'price': 10.0, 'difficulty': 'Easy', 'battles': 5, 'wins': 3, 'win_pct': 60.0},
+        {'id': 3, 'meal': 'Tacos', 'cuisine': 'Mexican', 'price': 8.0, 'difficulty': 'Easy', 'battles': 7, 'wins': 4, 'win_pct': 57.1},
+    ]
+
+    assert leaderboard_win_pct == expected_win_pct
+
+
 
 # test get leaderboard, invalid sort_by parameter
+def test_get_leaderboard_bad_sort_by(mock_cursor):
+    '''Test get_leaderboard that passes an invalid sort_by parameter.'''
+
+    with pytest.raises(ValueError, match="Invalid sort_by parameter: 'invalid'"):
+        get_leaderboard(sort_by="invalid")
+    
+
 
 # test get meal by id
 
