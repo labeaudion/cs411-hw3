@@ -60,17 +60,3 @@ def test_clear_combatants_empty_combatants(battle_model, caplog):
 # test prep combatants
 
 # test prep combatants, adding more than 2 combatants
-
-
-
-
-
-
-# unit tests for getting the combatants
-
-
-
-
-
-
-# unit tests for adding the combatants to the combatants list
