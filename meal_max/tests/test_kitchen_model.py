@@ -41,10 +41,54 @@ def mock_cursor(mocker):
 
 
 # test create meal
+def test_create_meal(mock_cursor):
+    """Test creating a new meal."""
+
+    # Call the function to create a new meal
+    create_meal(meal='Meal Name', cuisine='Cuisine Name', price=8.50, difficulty='LOW')
+
+    expected_query = normalize_whitespace("""
+        INSERT INTO meals (meal, cuisine, price, difficulty)
+        VALUES (?, ?, ?, ?)
+    """)
+
+    actual_query = normalize_whitespace(mock_cursor.execute.call_args[0][0])
+
+    # Assert that the SQL query was correct
+    assert actual_query == expected_query, "The SQL query did not match the expected structure."
+
+    # Extract the arguments used in the SQL call (second element of call_args)
+    actual_arguments = mock_cursor.execute.call_args[0][1]
+
+    # Assert that the SQL query was executed with the correct arguments
+    expected_arguments = ("Meal Name", "Cuisine Name", 8.50, "LOW")
+    assert actual_arguments == expected_arguments, f"The SQL query arguments did not match. Expected {expected_arguments}, got {actual_arguments}."
 
 # test create duplicate meal
+def test_create_meal_duplicate(mock_cursor):
+    """Test creating a meal with a duplicate meal name (should raise an error)."""
+
+    # Simulate that the database will raise an IntegrityError due to a duplicate entry
+    mock_cursor.execute.side_effect = sqlite3.IntegrityError("UNIQUE constraint failed: meal.name")
+
+    # Expect the function to raise a ValueError with a specific message when handling the IntegrityError
+    with pytest.raises(ValueError, match="Meal with name 'Meal Name' already exists"):
+        create_meal(meal='Meal Name', cuisine='Cuisine Name', price=8.50, difficulty='LOW')
+
 
 # test invalid price, price must be positive
+def test_create_meal_invalid_price():
+    """Test error when trying to create a meal with an invalid price (e.g., negative price)"""
+
+    # Attempt to create a meal with a negative price
+    with pytest.raises(ValueError, match="Invalid meal price: -8.50 \(must be a positive float\)."):
+        create_meal(meal='Meal Name', cuisine='Cuisine Name', price=-8.50, difficulty='LOW')
+
+    # Attempt to create a meal with a non-float price
+    with pytest.raises(ValueError, match="Invalid meal rpice: invalid \(must be a positive float\)."):
+        create_meal(meal='Meal Name', cuisine='Cuisine Name', price='invalid', difficulty='LOW')
+
+
 
 # test invalid difficulty, must be low, med, or high
 
