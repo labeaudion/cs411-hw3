@@ -46,17 +46,17 @@ check_db() {
 }
 
 create_meal() {
-    meal=$1
-    cuisine=$2
-    price=$3
-    difficulty=$4
+    id=$1
+    meal=$2
+    cuisine=$3
+    price=$4
+    difficulty=$5
 
-    echo "Creating meal: ($meal)"
-    curl -s -X POST "$BASE_URL/create-meal" -H "Content-Type: application/json" \
-        -d "{\"meal\":\"$meal\", \"cuisine\":\"$cuisine\", \"price\":$price, \"difficulty\":\"$difficulty\"}" | grep -q '"status": "success"'
-    
-    if [ $? -eq 0 ]; then
-        echo "Song added successfully."
+    echo "Adding meal ($id - $meal, $cuisine) to the meal list..."
+    response=$(curl -s -X POST "$BASE_URL/create-meal" -H "Content-Type: application/json" \
+        -d "{\"id\":\"$id\", \"meal\":\"$meal\", \"cuisine\":\"$cuisine\", \"price\":$price, \"difficulty\":\"$difficulty\"}")    
+    if echo "$response" | grep -q '"status": "success"'; then
+        echo "Meal added successfully."
     else
         echo "Failed to add meal."
         exit 1
@@ -64,15 +64,8 @@ create_meal() {
 }
 
 clear_meals() {
-  echo "Clearing meals..."
-  response=$(curl -s -X POST "$BASE_URL/clear-meals")
-
-  if echo "$response" | grep -q '"status": "success"'; then
-    echo "Meals cleared successfully."
-  else
-    echo "Failed to clear meals."
-    exit 1
-  fi
+  echo "Clearing the meals..."
+  curl -s -X DELETE "$BASE_URL/clear-catalog" | grep -q '"status": "success"'
 }
 
 delete_meal() {
@@ -230,3 +223,11 @@ prep_combatant() {
         exit 1
     fi
 }
+
+create_meal 1 "Meal Name" "Cuisine Name" 50.0 "LOW"
+create_meal 2 "Meal Name 2" "Cuisine Name 2" 75.5 "MED"
+clear_meals
+delete_meal 1
+
+check_health
+check_db
