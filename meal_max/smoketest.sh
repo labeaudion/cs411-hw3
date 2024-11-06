@@ -82,10 +82,11 @@ delete_meal() {
 }
 
 get_leaderboard() {
-    $sort_by=$1
+    sort_by=$1
 
     echo "Getting meal leaderboard..."
-    response=$(curl -s -X GET "$BASE_URL/get-leaderboard/$sort_by")
+    response=$(curl -s -X GET "$BASE_URL/leaderboard/$sort_by")
+    echo "$response"
     if echo "$response" | grep -q '"status": "success"'; then
         echo "Meal leaderboard retrieved successfully."
         if [ "$ECHO_JSON" = true ]; then
@@ -103,6 +104,7 @@ get_meal_by_id() {
 
     echo "Getting meal by ID ($meal_id)..."
     response=$(curl -s -X GET "$BASE_URL/get-meal-by-id/$meal_id")
+    echo "$response"
     if echo "$response" | grep -q '"status": "success"'; then
         echo "Meal retrieved successfully by ID ($meal_id)."
         if [ "$ECHO_JSON" = true ]; then
@@ -118,8 +120,9 @@ get_meal_by_id() {
 get_meal_by_name() {
     meal_name=$1
 
-    echo "Getting meal by name ($meal_name)"
+    echo "Getting meal by name ($meal_name)..."
     response=$(curl -s -X GET "$BASE_URL/get-meal-by-name/$meal_name")
+    echo "$response"
     if echo "$response" | grep -q '"status": "success"'; then
         echo "Meal retrieved successfully by name ($meal_name)."
         if [ "$ECHO_JSON" = true ]; then
@@ -226,8 +229,11 @@ prep_combatant() {
 
 create_meal 1 "Meal Name" "Cuisine Name" 50.0 "LOW"
 create_meal 2 "Meal Name 2" "Cuisine Name 2" 75.5 "MED"
+get_meal_by_name "Meal Name"
+update_meal_stats "Meal Name" "win"
 clear_meals
 delete_meal 1
+
 
 check_health
 check_db
