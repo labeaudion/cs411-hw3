@@ -2,6 +2,7 @@ import pytest
 
 from meal_max.models.battle_model import BattleModel
 from meal_max.models.kitchen_model import Meal
+from meal_max.utils.random_utils import get_random
 
 
 @pytest.fixture()
@@ -30,45 +31,38 @@ def sample_combatants(sample_meal1, sample_meal2):
 
 
 # test battle
-def test_battle(battle_model, sample_combatants, mock_update_meal_stats, mocker):
-    """Test battle."""
+def test_battle_combatant_1_wins(battle_model, sample_combatants, mock_update_meal_stats, mocker):
+    """Test battle where combatant 1 wins."""
+
     battle_model.combatants.extend(sample_combatants)
 
-    # First scenario: Meal 1 wins
     battle_model.get_battle_score = lambda meal: 80 if meal.id == 1 else 60
-    mocker.patch('meal_max.utils.random_utils.get_random', return_value=0.3)  # Mocking the random number
+    mocker.patch('meal_max.models.battle_model.get_random', return_value=0.1)
 
     winner = battle_model.battle()
-    assert winner == sample_combatants[0].meal  # Meal 1 should win
-    assert len(battle_model.combatants) == 1  # Only the winner should remain
+    assert winner == sample_combatants[0].meal
+    assert len(battle_model.combatants) == 1
 
-    # Verify the update_meal_stats calls for the first scenario
     mock_update_meal_stats.assert_any_call(sample_combatants[0].id, 'win')
     mock_update_meal_stats.assert_any_call(sample_combatants[1].id, 'loss')
-    assert mock_update_meal_stats.call_count == 2  # Check that it's called for both winner and loser
+    assert mock_update_meal_stats.call_count == 2
 
-    # Reset for the next scenario
-    battle_model.combatants.clear()  # Clear the combatants
-    battle_model.combatants.extend(sample_combatants)  # Re-add combatants for the next test
 
-    # Second scenario: Meal 2 wins
+def test_battle_combatant_2_wins(battle_model, sample_combatants, mock_update_meal_stats, mocker):
+    """Test battle where combatant 2 wins."""
+    battle_model.combatants.extend(sample_combatants)
+
     battle_model.get_battle_score = lambda meal: 60 if meal.id == 1 else 80
-    mocker.patch('meal_max.utils.random_utils.get_random', return_value=0.8)  # Mocking the random number
+    mocker.patch('meal_max.models.battle_model.get_random', return_value=0.8)
 
     winner = battle_model.battle()
-    assert winner == sample_combatants[1].meal  # Meal 2 should win
-    assert len(battle_model.combatants) == 1  # Only the winner should remain
+    assert winner == sample_combatants[1].meal
+    assert len(battle_model.combatants) == 1
 
-    # Verify the update_meal_stats calls for the second scenario
     mock_update_meal_stats.assert_any_call(sample_combatants[1].id, 'win')
     mock_update_meal_stats.assert_any_call(sample_combatants[0].id, 'loss')
-    assert mock_update_meal_stats.call_count == 4  # Total call count after both scenarios
+    assert mock_update_meal_stats.call_count == 2
 
-    # battle_model.combatants.extend(sample_combatants)
-
-    # winner = battle_model.battle()
-    # mock_update_meal_stats.assert_called_once_with(winner.id, 'win')
-    # assert winner is not None
 
 # test battle, less than 2 combatants
 def test_battle_less_2_combatants(battle_model, sample_meal1):
@@ -90,8 +84,7 @@ def test_clear_combatants_empty_combatants(battle_model, caplog):
     """Test clearing the entire combatants list when it's empty."""
     battle_model.clear_combatants()
     assert len(battle_model.combatants) == 0, "Combatants list should be empty after clearing"
-    #assert "Clearing an empty combatants list" in caplog.text, "Expected warning message when clearing an empty combatants list"
-
+ 
 
 # test get battle score
 def test_get_battle_score(battle_model, sample_meal1):
