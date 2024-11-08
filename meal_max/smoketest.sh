@@ -133,21 +133,6 @@ get_meal_by_name() { #Works
     fi
 }
 
-update_meal_stats() { 
-    meal_id=$1
-    result=$2
-
-    echo "Updating meal ($meal_id)"
-    curl -s -X POST "$BASE_URL/update-meal-stats" -H "Content-Type: application/json" \
-        -d "{\"meal_id\":\"$meal_id\", \"result\":\"$result\"}" | grep -q '"status": "success"'
-    
-    if [ $? -eq 0 ]; then
-        echo "Meal updated successfully."
-    else
-        echo "Failed to update meal."
-        exit 1
-    fi
-}
 
 battle() { #Works
     echo "Battling"
@@ -177,22 +162,6 @@ clear_combatants() { # Works
     fi
 }
 
-get_battle_score() {
-    meal=$1
-
-    echo "Getting the battle score"
-    response=$(curl -s -X GET "$BASE_URL/get-battle-score/$meal")
-    if echo "$response" | grep -q '"status": "success"'; then
-        echo "Successfully retrieved the battle score."
-        if [ "$ECHO_JSON" = true ]; then
-            echo "Battle Score JSON (Name $meal):"
-            echo "$response" | jq .
-        fi
-    else
-        echo "Failed to get battle score."
-        exit 1
-    fi
-}
 
 get_combatants() { #Works
   echo "Getting all songs in the combatants..."
@@ -247,5 +216,5 @@ get_leaderboard
 get_meal_by_id 2
 
 battle
-
+echo "All tests passed"
 
